@@ -5,7 +5,6 @@
   <div class="center">
 
     <h2>Teachable Machine Image Model</h2>
-    <button id="start_compare_button" type="button" onclick="init()">Start</button>
     <button id="pauser" type="button" onclick="setPause()">Pause</button>
     <div id="webcam-container"></div>
     <div id="label-container"></div>
@@ -23,7 +22,7 @@
 </body>
 
 <div class="navbar-bottom">
-  <a href="#home" class="active">Home</a>
+  <a href="#home">Home</a>
   <a href="#news">News</a>
   <a href="#contact">Contact</a>
 
@@ -59,7 +58,6 @@
 
   // Load the image model and setup the webcam
   async function init() {
-    document.getElementById("start_compare_button").disabled = true;
     const modelURL = URL + "model.json";
     const metadataURL = URL + "metadata.json";
 
