@@ -1,101 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <!--
-      This is the page head - it contains info the browser uses to display the page
-      You won't see what's in the head in the page
-      Scroll down to the body element for the page content
-    -->
 
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="https://glitch.com/favicon.ico" />
+<head>
+  <div class="center">
 
-    <!-- 
-      This is an HTML comment
-      You can write text in a comment and the content won't be visible in the page
-    -->
+    <h2>Teachable Machine Image Model</h2>
+    <button id="start_compare_button" type="button" onclick="init()">Start</button>
+    <button id="pauser" type="button" onclick="setPause()">Pause</button>
+    <div id="webcam-container"></div>
+    <div id="label-container"></div>
 
-    <title>Hello World!</title>
+    <a id="test">yes</a>
+  </div>
 
-    <!-- Meta tags for SEO and social sharing -->
-    <link rel="canonical" href="https://glitch-hello-website.glitch.me/" />
-    <meta
-      name="description"
-      content="A simple website, built with Glitch. Remix it to get your own."
-    />
-    <meta name="robots" content="index,follow" />
-    <meta property="og:title" content="Hello World!" />
-    <meta property="og:type" content="article" />
-    <meta property="og:url" content="https://glitch-hello-website.glitch.me/" />
-    <meta
-      property="og:description"
-      content="A simple website, built with Glitch. Remix it to get your own."
-    />
-    <meta
-      property="og:image"
-      content="https://cdn.glitch.com/605e2a51-d45f-4d87-a285-9410ad350515%2Fhello-website-social.png?v=1616712748147"
-    />
-    <meta name="twitter:card" content="summary" />
 
-    <!-- Import the webpage's stylesheet -->
-    <link rel="stylesheet" href="/style.css" />
 
-    <!-- Import the webpage's javascript file -->
-    <script src="/script.js" defer></script>
-  </head>
-  <body>
-    <!--
-      This is the body of the page
-      Look at the elements and see how they appear in the rendered page on the right
-      Each element is defined using tags, with < and > indicating where each one opens and closes
-      There are elements for sections of the page, images, text, and more
-      The elements include attributes referenced in the CSS for the page style
-    -->
 
-    <!-- The wrapper and content divs set margins and positioning -->
-    <div class="wrapper">
-      <div class="content" role="main">
-        <!-- This is the start of content for our page -->
-        <h1 class="title">Hello World!</h1>
+</head>
 
-        <img
-          src="https://cdn.glitch.com/a9975ea6-8949-4bab-addb-8a95021dc2da%2Fillustration.svg?v=1618177344016"
-          class="illustration"
-          alt="Editor illustration"
-          title="Click the image!"
-        />
-        <!-- Instructions on using this project -->
-        <div class="instructions">
-          <h2>
-            Using this project
-          </h2>
-          <p>
-            This is the Glitch <strong>Hello Website</strong> project. You can
-            use it to build your own site. Check out README.md in the editor for
-            more info and next steps you can take!
-          </p>
-          <!-- ADD BUTTON HERE -->
-          
-          <!-- Once you've added the button from the readme, click it in the page -->
-          <!-- Check out the function in script.js to see how it works -->
-        </div>
-      </div>
-    </div>
-    <!-- The footer holds our remix button — you can use it for structure or cut it out ✂ -->
-    <footer class="footer">
-      <div class="links"></div>
-      <a
-        class="btn--remix"
-        target="_top"
-        href="https://glitch.com/edit/#!/remix/glitch-hello-website"
-      >
-        <img
-          src="https://cdn.glitch.com/605e2a51-d45f-4d87-a285-9410ad350515%2FLogo_Color.svg?v=1618199565140"
-          alt=""
-        />
-        Remix on Glitch
-      </a>
-    </footer>
-  </body>
+<body>
+
+</body>
+
+<div class="navbar-bottom">
+  <a href="#home" class="active">Home</a>
+  <a href="#news">News</a>
+  <a href="#contact">Contact</a>
+
+  <!-- Example of How to Link Page -->
+  <li><a href="/about.html">About</a></li>
+</div>
+
+
+
 </html>
+
+
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+<script type="text/javascript">
+  window.onload = (event) => {
+    init();
+  };
+  // More API functions here:
+  // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
+
+  // the link to your model provided by Teachable Machine export panel
+  // const URL = "https://teachablemachine.withgoogle.com/models/O2Y0eusGQ/";
+
+  // Pill Model
+  const URL = "https://teachablemachine.withgoogle.com/models/sg9BdUvQb/";
+
+  let model, webcam, labelContainer, maxPredictions;
+  let play = true;
+
+
+
+  // Load the image model and setup the webcam
+  async function init() {
+    document.getElementById("start_compare_button").disabled = true;
+    const modelURL = URL + "model.json";
+    const metadataURL = URL + "metadata.json";
+
+    // load the model and metadata
+    // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
+    // or files from your local hard drive
+    // Note: the pose library adds "tmImage" object to your window (window.tmImage)
+    model = await tmImage.load(modelURL, metadataURL);
+    maxPredictions = model.getTotalClasses();
+
+    // Convenience function to setup a webcam
+    const flip = true; // whether to flip the webcam
+    webcam = new tmImage.Webcam(300, 300, flip); // width, height, flip
+    await webcam.setup(); // request access to the webcam
+    await webcam.play();
+    // if(play) {
+    window.requestAnimationFrame(loop);
+    // }
+
+    // append elements to the DOM
+    document.getElementById("webcam-container").appendChild(webcam.canvas);
+
+    labelContainer = document.getElementById("label-container");
+    for (let i = 0; i < maxPredictions; i++) { // and class labels
+      labelContainer.appendChild(document.createElement("div"));
+    }
+  }
+
+  async function loop() {
+    if (play) {
+      webcam.update(); // update the webcam frame
+      await predict();
+      window.requestAnimationFrame(loop);
+    }
+  }
+
+  // run the webcam image through the image model
+  async function predict() {
+    let comp = [];
+    // predict can take in an image, video or canvas html element
+    const prediction = await model.predict(webcam.canvas);
+    for (let i = 0; i < maxPredictions; i++) {
+      const classPrediction =
+        prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+      labelContainer.childNodes[i].innerHTML = classPrediction;
+      comp.push(prediction[i]);
+      //whatColor(prediction[i]);
+
+    }
+    whatColor(comp);
+
+  }
+
+  async function setPause() {
+    play = !play;
+    if (play) {
+      document.getElementById("pauser").innerHTML = "pause";
+      document.getElementById("webcam-container").removeChild(webcam.canvas);
+      init();
+    }
+    else {
+      document.getElementById("pauser").innerHTML = "play";
+    }
+  }
+
+  async function whatColor(compare) {
+
+    // if(compare.className === "Red Tic Tac")
+    // {
+    //   
+    //   console.log(compare.prediction >= 0.51);
+    // }
+    //if (compare.)
+    console.log(compare[0]);
+    if (compare[0].probability >= 0.51) {
+      localStorage["currentPill"] = JSON.stringify("NULL");
+      document.getElementById("test").innerHTML = "this is the background";
+      //console.log("this is the background");
+
+    }
+    else if (compare[1].probability >= 0.51) {
+      localStorage["currentPill"] = JSON.stringify("Red");
+      document.getElementById("test").innerHTML = "this is red tic tac";
+      document.getElementById("test").href = "/about.html";
+      //console.log("this is the Red");
+
+    }
+    else if (compare[2].probability >= 0.51) {
+      let obj = { pill: compare[2].className };
+      localStorage["currentPill"] = JSON.stringify(obj);
+
+      document.getElementById("test").innerHTML = "this is green tic tac";
+      document.getElementById("test").href = "/about.html";
+      //console.log("this is the Green");
+
+      /*
+      let text = JSON.parse(localStorage.getItem("currentPill"));
+      console.log(text);
+      */
+    }
+
+    // Storing data:
+    // const myObj = {name: "John", age: 31, city: "New York"};
+    // const myJSON = JSON.stringify(myObj);
+    // localStorage.setItem("testJSON", myJSON);
+
+    // // Retrieving data:
+    // let text = localStorage.getItem("testJSON");
+    // let obj = JSON.parse(text);
+
+  }
+
+
+</script>
